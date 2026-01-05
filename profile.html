@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - UniAssist</title>
+    <link rel="icon" type="image/jpeg" href="Logo%20F.jpeg" />
+    <link rel="apple-touch-icon" href="Logo%20F.jpeg" />
+    
+    <!-- Firebase SDK (Compat - Load First) -->
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore-compat.js"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        body.app-bg {
+            background-color: var(--bg-base, #0b111b) !important;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+                radial-gradient(circle at 16% 18%, rgba(129, 140, 248, 0.22), transparent 32%),
+                radial-gradient(circle at 84% 12%, rgba(56, 189, 248, 0.20), transparent 34%),
+                radial-gradient(circle at 50% 98%, rgba(52, 211, 153, 0.16), transparent 38%),
+                linear-gradient(180deg, var(--bg-top, rgba(19, 26, 42, 0.95)), var(--bg-mid, rgba(15, 23, 42, 0.96)), var(--bg-bottom, rgba(9, 12, 20, 0.97)));
+            background-size:
+                28px 28px,
+                28px 28px,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                auto;
+            background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+            min-height: 100vh;
+        }
+
+        :root:not(.dark) body.app-bg {
+            --bg-base: #f4f6fb;
+            --bg-top: rgba(230, 236, 255, 0.96);
+            --bg-mid: rgba(255, 255, 255, 0.99);
+            --bg-bottom: rgba(218, 225, 238, 0.96);
+            background-image:
+                linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px),
+                radial-gradient(circle at 18% 22%, rgba(99, 102, 241, 0.20), transparent 32%),
+                radial-gradient(circle at 82% 10%, rgba(56, 189, 248, 0.18), transparent 30%),
+                radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.16), transparent 36%),
+                linear-gradient(180deg, var(--bg-top), var(--bg-mid), var(--bg-bottom));
+        }
+
+        :root.dark body.app-bg {
+            --bg-base: #0b111b;
+            --bg-top: rgba(19, 26, 42, 0.95);
+            --bg-mid: rgba(15, 23, 42, 0.96);
+            --bg-bottom: rgba(9, 12, 20, 0.97);
+        }
+
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card-hover { transition: transform 180ms ease, box-shadow 180ms ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(2, 8, 23, 0.08); }
+
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(14px);
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9));
+            border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        }
+        .dark .app-header {
+            background: linear-gradient(180deg, rgba(26, 32, 44, 0.92), rgba(17, 24, 39, 0.9));
+            border-bottom-color: rgba(59, 130, 246, 0.28);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+        }
+        .app-header::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(99,102,241,0.55), rgba(56,189,248,0.55), rgba(16,185,129,0.55));
+            opacity: 0.9;
+        }
+        .app-header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            padding: 0 24px;
+        }
+
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+        .dark .profile-card {
+            background: rgba(30, 41, 59, 0.9);
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+        }
+        .dark .stat-card {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+        }
+
+        .avatar-glow {
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.4), 0 0 60px rgba(139, 92, 246, 0.2);
+        }
+    </style>
+</head>
+<body class="app-bg text-gray-900 dark:text-gray-100">
+
+<script>
+    // Dark Mode Toggle
+    window.darkModeToggle = () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+    };
+    
+    // Initialize dark mode
+    (function initDark() {
+        const pref = localStorage.getItem('darkMode');
+        if (pref === null) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('darkMode', 'true');
+        } else if (pref === 'true') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    })();
+</script>
+
+<button 
+    onclick="darkModeToggle()"
+    class="hidden"
+    id="floating-theme-toggle"
+    title="Toggle dark mode"
+>
+    <svg class="w-5 h-5 text-gray-800 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+    </svg>
+</button>
+
+<script>
+    // Initialize Firebase
+    (function initFirebase() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyCa-AuFlVHpeNUJaTLAz98v7lQtdl5My8E",
+            authDomain: "uniassist-101.firebaseapp.com",
+            projectId: "uniassist-101",
+            storageBucket: "uniassist-101.firebasestorage.app",
+            messagingSenderId: "743555520176",
+            appId: "1:743555520176:web:be1d9236e85933d4bacd75",
+            measurementId: "G-DZQSZ7Q3W0"
+        };
+
+        if (!window.firebase) {
+            console.error('Firebase SDK failed to load');
+            return;
+        }
+
+        window.firebase.initializeApp(firebaseConfig);
+    })();
+</script>
+
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect } = React;
+
+    // --- Icons ---
+    const Icon = ({ path, className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            {path}
+        </svg>
+    );
+
+    const Icons = {
+        User: (props) => <Icon {...props} path={<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
+        Mail: (props) => <Icon {...props} path={<><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></>} />,
+        Calendar: (props) => <Icon {...props} path={<><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></>} />,
+        BookOpen: (props) => <Icon {...props} path={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />,
+        Award: (props) => <Icon {...props} path={<><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"/></>} />,
+        Clock: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>} />,
+        Edit: (props) => <Icon {...props} path={<><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></>} />,
+        Save: (props) => <Icon {...props} path={<><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>} />,
+        ArrowLeft: (props) => <Icon {...props} path={<><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></>} />,
+        LogOut: (props) => <Icon {...props} path={<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 8l4 4m-4 4l4-4M9 12h12"/>} />,
+        CheckCircle: (props) => <Icon {...props} path={<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></>} />,
+        Target: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>} />,
+        TrendingUp: (props) => <Icon {...props} path={<><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></>} />,
+        Star: (props) => <Icon {...props} path={<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>} />,
+    };
+
+    // --- Profile Page Component ---
+    const ProfilePage = () => {
+        const [user, setUser] = useState(null);
+        const [loading, setLoading] = useState(true);
+        const [editing, setEditing] = useState(false);
+        const [editedUsername, setEditedUsername] = useState('');
+        const [saving, setSaving] = useState(false);
+        const [message, setMessage] = useState({ type: '', text: '' });
+        const [stats, setStats] = useState({
+            totalTodos: 0,
+            completedTodos: 0,
+            studyStreak: 0,
+            memberSince: ''
+        });
+
+        useEffect(() => {
+            // Load user from localStorage
+            const loadUser = async () => {
+                try {
+                    const saved = localStorage.getItem('exammode_user');
+                    if (saved) {
+                        const userData = JSON.parse(saved);
+                        setUser(userData);
+                        setEditedUsername(userData.username || userData.displayName || '');
+                        
+                        // Calculate stats
+                        calculateStats(userData);
+                        
+                        // Sync with Firebase
+                        await syncFromFirebase(userData);
+                    } else {
+                        // Redirect to login
+                        window.location.href = '/';
+                    }
+                } catch (e) {
+                    console.error('Error loading user:', e);
+                    window.location.href = '/';
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            loadUser();
+        }, []);
+
+        const calculateStats = (userData) => {
+            // Load todos and calculate stats
+            const todosKey = userData ? `exammode_todos_${userData.uid}` : 'exammode_todos';
+            const savedTodos = localStorage.getItem(todosKey);
+            let totalTodos = 0;
+            let completedTodos = 0;
+
+            if (savedTodos) {
+                const todos = JSON.parse(savedTodos);
+                Object.values(todos).forEach(dayTodos => {
+                    if (Array.isArray(dayTodos)) {
+                        totalTodos += dayTodos.length;
+                        completedTodos += dayTodos.filter(t => t.done).length;
+                    }
+                });
+            }
+
+            // Calculate member since
+            const loginTime = userData.loginTime ? new Date(userData.loginTime) : new Date();
+            const memberSince = loginTime.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+
+            // Calculate streak (simplified - consecutive days with completed todos)
+            let streak = 0;
+            if (savedTodos) {
+                const todos = JSON.parse(savedTodos);
+                const today = new Date();
+                for (let i = 0; i < 30; i++) {
+                    const checkDate = new Date(today);
+                    checkDate.setDate(checkDate.getDate() - i);
+                    const dateKey = checkDate.toISOString().split('T')[0];
+                    const dayTodos = todos[dateKey];
+                    if (dayTodos && dayTodos.some(t => t.done)) {
+                        streak++;
+                    } else if (i > 0) {
+                        break;
+                    }
+                }
+            }
+
+            setStats({
+                totalTodos,
+                completedTodos,
+                studyStreak: streak,
+                memberSince
+            });
+        };
+
+        const syncFromFirebase = async (userData) => {
+            try {
+                const fb = window.firebase;
+                if (!fb || !userData?.uid) return;
+
+                const db = fb.firestore();
+                const doc = await db.collection('users').doc(userData.uid).get();
+                
+                if (doc.exists) {
+                    const dbData = doc.data();
+                    const syncedUser = {
+                        ...userData,
+                        username: dbData.username || userData.username,
+                        branch: dbData.branch || userData.branch,
+                        createdAt: dbData.createdAt
+                    };
+                    localStorage.setItem('exammode_user', JSON.stringify(syncedUser));
+                    setUser(syncedUser);
+                    setEditedUsername(syncedUser.username || syncedUser.displayName || '');
+                }
+            } catch (e) {
+                console.error('Failed to sync from Firebase:', e);
+            }
+        };
+
+        const handleSave = async () => {
+            if (!editedUsername.trim()) {
+                setMessage({ type: 'error', text: 'Username cannot be empty' });
+                return;
+            }
+
+            setSaving(true);
+            setMessage({ type: '', text: '' });
+
+            try {
+                const fb = window.firebase;
+                if (fb && user?.uid) {
+                    const db = fb.firestore();
+                    await db.collection('users').doc(user.uid).update({
+                        username: editedUsername.trim(),
+                        updatedAt: fb.firestore.FieldValue.serverTimestamp()
+                    });
+                }
+
+                const updatedUser = {
+                    ...user,
+                    username: editedUsername.trim()
+                };
+                localStorage.setItem('exammode_user', JSON.stringify(updatedUser));
+                setUser(updatedUser);
+                setEditing(false);
+                setMessage({ type: 'success', text: 'Profile updated successfully!' });
+                
+                setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+            } catch (e) {
+                console.error('Error saving profile:', e);
+                setMessage({ type: 'error', text: 'Failed to save. Please try again.' });
+            } finally {
+                setSaving(false);
+            }
+        };
+
+        const handleLogout = () => {
+            localStorage.removeItem('exammode_user');
+            window.location.href = '/';
+        };
+
+        if (loading) {
+            return (
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+                </div>
+            );
+        }
+
+        if (!user) {
+            return null;
+        }
+
+        const completionRate = stats.totalTodos > 0 
+            ? Math.round((stats.completedTodos / stats.totalTodos) * 100) 
+            : 0;
+
+        return (
+            <div className="min-h-screen">
+                {/* Header */}
+                <header className="app-header">
+                    <div className="app-header-inner w-full max-w-7xl mx-auto">
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => window.location.href = '/'}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                                title="Back to Dashboard"
+                            >
+                                <Icons.ArrowLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                            </button>
+                            <img src="Logo%20F.jpeg" alt="UniAssist" className="w-8 h-8 rounded-lg object-contain" />
+                            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">Profile</h1>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => window.darkModeToggle()}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                                title="Toggle dark/light mode"
+                            >
+                                <svg className="w-5 h-5 text-gray-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                                </svg>
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition"
+                            >
+                                <Icons.LogOut className="w-4 h-4" />
+                                <span className="hidden sm:inline">Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                {/* Main Content */}
+                <main className="max-w-4xl mx-auto px-4 py-8">
+                    {/* Message Alert */}
+                    {message.text && (
+                        <div className={`mb-6 p-4 rounded-lg animate-in ${
+                            message.type === 'success' 
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-800' 
+                                : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-800'
+                        }`}>
+                            <div className="flex items-center gap-2">
+                                {message.type === 'success' && <Icons.CheckCircle className="w-5 h-5" />}
+                                {message.text}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Profile Card */}
+                    <div className="profile-card rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden animate-in">
+                        {/* Cover/Banner */}
+                        <div className="h-32 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
+                            <div className="absolute inset-0 bg-black/10"></div>
+                        </div>
+
+                        {/* Avatar & Info */}
+                        <div className="px-6 pb-6">
+                            <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-16 relative z-10">
+                                {/* Avatar */}
+                                <div className="relative">
+                                    <img 
+                                        src={user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.displayName || 'U')}&size=128&background=6366f1&color=fff`}
+                                        alt="Profile"
+                                        className="w-32 h-32 rounded-2xl border-4 border-white dark:border-gray-800 shadow-lg avatar-glow object-cover"
+                                    />
+                                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white dark:border-gray-800 flex items-center justify-center">
+                                        <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+
+                                {/* Name & Edit */}
+                                <div className="flex-1 pt-4 sm:pt-0 sm:pb-2">
+                                    {editing ? (
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="text"
+                                                value={editedUsername}
+                                                onChange={(e) => setEditedUsername(e.target.value)}
+                                                className="flex-1 px-4 py-2 text-xl font-bold rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/60 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                                placeholder="Enter username"
+                                                autoFocus
+                                            />
+                                            <button
+                                                onClick={handleSave}
+                                                disabled={saving}
+                                                className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition flex items-center gap-2 disabled:opacity-50"
+                                            >
+                                                <Icons.Save className="w-4 h-4" />
+                                                {saving ? 'Saving...' : 'Save'}
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setEditing(false);
+                                                    setEditedUsername(user.username || user.displayName || '');
+                                                }}
+                                                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium transition"
+                                            >
+                                                Cancel
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex items-center gap-3">
+                                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+                                                {user.username || user.displayName || 'User'}
+                                            </h2>
+                                            <button
+                                                onClick={() => setEditing(true)}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                                                title="Edit username"
+                                            >
+                                                <Icons.Edit className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                                            </button>
+                                        </div>
+                                    )}
+                                    <p className="text-gray-500 dark:text-gray-400 mt-1">
+                                        {user.branch || 'Branch not set'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Info Grid */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+                                    <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                                        <Icons.Mail className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Email</p>
+                                        <p className="font-medium">{user.email || 'Not provided'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+                                    <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                                        <Icons.Calendar className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Member Since</p>
+                                        <p className="font-medium">{stats.memberSince}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+                                    <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                                        <Icons.BookOpen className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Branch</p>
+                                        <p className="font-medium">{user.branch || 'Not set'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 text-gray-600 dark:text-gray-300">
+                                    <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                                        <Icons.User className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">Display Name</p>
+                                        <p className="font-medium">{user.displayName || 'Not provided'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Stats Section */}
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-8 mb-4 flex items-center gap-2">
+                        <Icons.TrendingUp className="w-5 h-5 text-indigo-500" />
+                        Your Stats
+                    </h3>
+                    
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {/* Total Tasks */}
+                        <div className="stat-card rounded-xl p-5 border border-indigo-200 dark:border-indigo-800/50 animate-in">
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg">
+                                    <Icons.Target className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.totalTodos}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Total Tasks</p>
+                        </div>
+
+                        {/* Completed Tasks */}
+                        <div className="stat-card rounded-xl p-5 border border-emerald-200 dark:border-emerald-800/50 animate-in" style={{ animationDelay: '50ms' }}>
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg">
+                                    <Icons.CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.completedTodos}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Completed</p>
+                        </div>
+
+                        {/* Completion Rate */}
+                        <div className="stat-card rounded-xl p-5 border border-purple-200 dark:border-purple-800/50 animate-in" style={{ animationDelay: '100ms' }}>
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="p-2 bg-purple-100 dark:bg-purple-900/50 rounded-lg">
+                                    <Icons.Award className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-white">{completionRate}%</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Completion Rate</p>
+                        </div>
+
+                        {/* Study Streak */}
+                        <div className="stat-card rounded-xl p-5 border border-amber-200 dark:border-amber-800/50 animate-in" style={{ animationDelay: '150ms' }}>
+                            <div className="flex items-center justify-between mb-3">
+                                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg">
+                                    <Icons.Star className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                                </div>
+                            </div>
+                            <p className="text-3xl font-bold text-gray-900 dark:text-white">{stats.studyStreak}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">Day Streak 🔥</p>
+                        </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mt-8 mb-4 flex items-center gap-2">
+                        <Icons.Clock className="w-5 h-5 text-indigo-500" />
+                        Quick Actions
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <button
+                            onClick={() => window.location.href = '/'}
+                            className="profile-card p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-indigo-300 dark:hover:border-indigo-700 transition group text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/50 rounded-xl group-hover:scale-110 transition">
+                                    <Icons.BookOpen className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900 dark:text-white">Go to Dashboard</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">View your study tools</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button
+                            onClick={() => window.location.href = 'subjects'}
+                            className="profile-card p-5 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-700 transition group text-left"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-purple-100 dark:bg-purple-900/50 rounded-xl group-hover:scale-110 transition">
+                                    <Icons.Award className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900 dark:text-white">Browse Subjects</h4>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Explore study materials</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </main>
+            </div>
+        );
+    };
+
+    // Render App
+    ReactDOM.createRoot(document.getElementById('root')).render(<ProfilePage />);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniAssist - Tools</title>
+    <link rel="icon" type="image/jpeg" href="Logo%20F.jpeg" />
+    <link rel="apple-touch-icon" href="Logo%20F.jpeg" />
+    <!-- Social sharing / link preview -->
+    <meta property="og:title" content="UniAssist" />
+    <meta property="og:description" content="Your study companion: dashboard, timer, groups and more." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://uniassist-101.web.app/" />
+    <meta property="og:image" content="https://uniassist-101.web.app/Logo%20F.jpeg" />
+    <meta property="og:image:secure_url" content="https://uniassist-101.web.app/Logo%20F.jpeg" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="UniAssist" />
+    <meta name="twitter:description" content="Your study companion: dashboard, timer, groups and more." />
+    <meta name="twitter:image" content="https://uniassist-101.web.app/Logo%20F.jpeg" />
+    
+    <!-- Firebase SDK (Compat - Load First) -->
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.1.0/firebase-analytics-compat.js"></script>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class'
+        }
+    </script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        /* App background class to override Tailwind bg utilities */
+        body.app-bg {
+            /* High-contrast dark-friendly aurora with a faint grid */
+            background-color: var(--bg-base, #0b111b) !important;
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px),
+                radial-gradient(circle at 16% 18%, rgba(129, 140, 248, 0.22), transparent 32%),
+                radial-gradient(circle at 84% 12%, rgba(56, 189, 248, 0.20), transparent 34%),
+                radial-gradient(circle at 50% 98%, rgba(52, 211, 153, 0.16), transparent 38%),
+                linear-gradient(180deg, var(--bg-top, rgba(19, 26, 42, 0.95)), var(--bg-mid, rgba(15, 23, 42, 0.96)), var(--bg-bottom, rgba(9, 12, 20, 0.97)));
+            background-size:
+                28px 28px,
+                28px 28px,
+                100% 100%,
+                100% 100%,
+                100% 100%,
+                auto;
+            background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat, no-repeat;
+        }
+
+        /* Light mode fallback keeps it soft and clean (applies only when html is NOT dark) */
+        :root:not(.dark) body.app-bg {
+            --bg-base: #f4f6fb;
+            --bg-top: rgba(230, 236, 255, 0.96);
+            --bg-mid: rgba(255, 255, 255, 0.99);
+            --bg-bottom: rgba(218, 225, 238, 0.96);
+            background-image:
+                linear-gradient(rgba(0,0,0,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.035) 1px, transparent 1px),
+                radial-gradient(circle at 18% 22%, rgba(99, 102, 241, 0.20), transparent 32%),
+                radial-gradient(circle at 82% 10%, rgba(56, 189, 248, 0.18), transparent 30%),
+                radial-gradient(circle at 50% 100%, rgba(16, 185, 129, 0.16), transparent 36%),
+                linear-gradient(180deg, var(--bg-top), var(--bg-mid), var(--bg-bottom));
+        }
+
+        /* Explicit dark override for clarity */
+        :root.dark body.app-bg {
+            --bg-base: #0b111b;
+            --bg-top: rgba(19, 26, 42, 0.95);
+            --bg-mid: rgba(15, 23, 42, 0.96);
+            --bg-bottom: rgba(9, 12, 20, 0.97);
+            background-image:
+                linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px),
+                radial-gradient(circle at 16% 18%, rgba(129, 140, 248, 0.24), transparent 32%),
+                radial-gradient(circle at 84% 12%, rgba(56, 189, 248, 0.22), transparent 34%),
+                radial-gradient(circle at 50% 98%, rgba(52, 211, 153, 0.18), transparent 38%),
+                linear-gradient(180deg, var(--bg-top), var(--bg-mid), var(--bg-bottom));
+        }
+        .animate-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .card-hover { transition: transform 180ms ease, box-shadow 180ms ease; }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(2, 8, 23, 0.08); }
+
+        /* Header styling: frosted strip with a subtle accent bar */
+        .app-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            backdrop-filter: blur(14px);
+            background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.9));
+            border-bottom: 1px solid rgba(148, 163, 184, 0.35);
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+        }
+        .dark .app-header {
+            background: linear-gradient(180deg, rgba(26, 32, 44, 0.92), rgba(17, 24, 39, 0.9));
+            border-bottom-color: rgba(59, 130, 246, 0.28);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+        }
+        .app-header::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 2px;
+            background: linear-gradient(90deg, rgba(99,102,241,0.55), rgba(56,189,248,0.55), rgba(16,185,129,0.55));
+            opacity: 0.9;
+        }
+        .app-header-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+            padding: 0 24px;
+        }
+        /* Theme-aware logo visibility */
+        :root:not(.dark) .logo-when-light { display: block; }
+        :root:not(.dark) .logo-when-dark { display: none; }
+        .dark .logo-when-light { display: none; }
+        .dark .logo-when-dark { display: block; }
+    
+        /* Rainbow animated background (used on login view) */
+        /* Subtle moving rainbow using a blurred conic gradient layer */
+        @keyframes rainbowSpin { to { transform: rotate(360deg); } }
+        .rainbow-bg {
+            position: fixed; inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 28px 28px, 28px 28px;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .rainbow-bg::before {
+            content: '';
+            position: absolute; inset: -25%;
+            background: conic-gradient(
+                from 0deg at 50% 50%,
+                rgba(255, 99, 132, 0.45),
+                rgba(255, 159, 67, 0.45),
+                rgba(255, 220, 77, 0.45),
+                rgba(72, 187, 120, 0.45),
+                rgba(59, 130, 246, 0.45),
+                rgba(139, 92, 246, 0.45),
+                rgba(236, 72, 153, 0.45),
+                rgba(255, 99, 132, 0.45)
+            );
+            filter: blur(72px) saturate(110%);
+            animation: rainbowSpin 40s linear infinite;
+            pointer-events: none;
+            opacity: 0.28;
+        }
+        :root:not(.dark) .rainbow-bg {
+            background-image:
+                linear-gradient(rgba(0,0,0,0.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.025) 1px, transparent 1px);
+        }
+        :root:not(.dark) .rainbow-bg::before { opacity: 0.22; filter: blur(70px) saturate(100%); }
+    </style>
+</head>
+<body class="app-bg text-gray-900 dark:text-gray-100">
+
+<script>
+    // Dark Mode Toggle
+    window.darkModeToggle = () => {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('darkMode', document.documentElement.classList.contains('dark'));
+    };
+    
+    // Initialize dark mode: default ON if unset
+    (function initDark() {
+        const pref = localStorage.getItem('darkMode');
+        if (pref === null) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('darkMode', 'true');
+        } else if (pref === 'true') {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    })();
+</script>
+
+<button 
+    onclick="darkModeToggle()"
+    class="hidden"
+    id="floating-theme-toggle"
+    title="Toggle dark mode"
+>
+    <svg class="w-5 h-5 text-gray-800 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+    </svg>
+</button>
+
+<script>
+    // Initialize Firebase with global compat SDK
+    (function initFirebase() {
+        const firebaseConfig = {
+            apiKey: "AIzaSyCa-AuFlVHpeNUJaTLAz98v7lQtdl5My8E",
+            authDomain: "uniassist-101.firebaseapp.com",
+            projectId: "uniassist-101",
+            storageBucket: "uniassist-101.firebasestorage.app",
+            messagingSenderId: "743555520176",
+            appId: "1:743555520176:web:be1d9236e85933d4bacd75",
+            measurementId: "G-DZQSZ7Q3W0"
+        };
+
+        if (!window.firebase) {
+            console.error('Firebase SDK failed to load');
+            return;
+        }
+
+        window.firebase.initializeApp(firebaseConfig);
+        if (window.firebase.analytics) {
+            window.firebase.analytics();
+        }
+    })();
+</script>
+
+<div id="root"></div>
+
+<script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- Icons ---
+    const Icon = ({ path, className }) => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+            {path}
+        </svg>
+    );
+
+    const Icons = {
+        Calculator: (props) => <Icon {...props} path={<><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="16" y1="14" x2="16" y2="14"/><line x1="16" y1="18" x2="16" y2="18"/><line x1="12" y1="14" x2="12" y2="14"/><line x1="12" y1="18" x2="12" y2="18"/><line x1="8" y1="14" x2="8" y2="14"/><line x1="8" y1="18" x2="8" y2="18"/></>} />,
+        Clock: (props) => <Icon {...props} path={<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>} />,
+        BarChart3: (props) => <Icon {...props} path={<><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></>} />,
+        BookOpen: (props) => <Icon {...props} path={<><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></>} />,
+        ChevronRight: (props) => <Icon {...props} path={<polyline points="9 18 15 12 9 6"/>} />,
+        ChevronLeft: (props) => <Icon {...props} path={<polyline points="15 18 9 12 15 6"/>} />,
+        CheckSquare: (props) => <Icon {...props} path={<><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></>} />,
+        Square: (props) => <Icon {...props} path={<rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>} />,
+        Trash2: (props) => <Icon {...props} path={<><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></>} />,
+        Activity: (props) => <Icon {...props} path={<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>} />,
+        X: (props) => <Icon {...props} path={<><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></>} />,
+        LogOut: (props) => <Icon {...props} path={<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 8l4 4m-4 4l4-4M9 12h12"/>} />,
+        User: (props) => <Icon {...props} path={<><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></>} />,
+        Users: (props) => <Icon {...props} path={<><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>} />,
+        MessageCircle: (props) => <Icon {...props} path={<><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></>} />,
+        ShoppingCart: (props) => <Icon {...props} path={<><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></>} />,
+    };
+
+    const GPA_SCALES = {
+        NITR: [
+            { label: 'Ex (10)', value: 10 },
+            { label: 'A (9)', value: 9 },
+            { label: 'B (8)', value: 8 },
+            { label: 'C (7)', value: 7 },
+            { label: 'D (6)', value: 6 },
+            { label: 'P (5)', value: 5 },
+            { label: 'F (0)', value: 0 },
+        ],
+    };
+
+    // --- Calendar Widget ---
+    const CalendarWidget = ({ todos, onDateClick, selectedDate }) => {
+        const [currentMonth, setCurrentMonth] = useState(new Date());
+
+        const getDaysInMonth = (date) => {
+            const year = date.getFullYear();
+            const month = date.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            return {
+                daysInMonth: lastDay.getDate(),
+                startingDayOfWeek: firstDay.getDay(),
+                year,
+                month
+            };
+        };
+
+        const { daysInMonth, startingDayOfWeek, year, month } = getDaysInMonth(currentMonth);
+        const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        const days = [];
+        for (let i = 0; i < startingDayOfWeek; i++) {
+            days.push(null);
+        }
+        for (let day = 1; day <= daysInMonth; day++) {
+            days.push(day);
+        }
+
+        const hasTodos = (day) => {
+            if (!day) return false;
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            return (todos[dateKey] || []).length > 0;
+        };
+
+        const getTodoColor = (day) => {
+            if (!day) return '';
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const tasksForDay = todos[dateKey] || [];
+            if (tasksForDay.length === 0) return '';
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const taskDate = new Date(year, month, day);
+            taskDate.setHours(0, 0, 0, 0);
+            const daysUntil = Math.floor((taskDate - today) / (1000 * 60 * 60 * 24));
+            
+            if (daysUntil < 0) return 'bg-gray-300 dark:bg-gray-600';
+            if (daysUntil === 0) return 'bg-red-500';
+            if (daysUntil <= 2) return 'bg-orange-500';
+            if (daysUntil <= 5) return 'bg-yellow-500';
+            return 'bg-green-500';
+        };
+
+        const isSelected = (day) => {
+            if (!day || !selectedDate) return false;
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const selectedKey = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`;
+            return dateKey === selectedKey;
+        };
+
+        const isToday = (day) => {
+            const today = new Date();
+            return day && year === today.getFullYear() && month === today.getMonth() && day === today.getDate();
+        };
+
+        const changeMonth = (delta) => {
+            const newMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + delta, 1);
+            setCurrentMonth(newMonth);
+        };
+
+        const handleDayClick = (day) => {
+            if (!day) return;
+            const clickedDate = new Date(year, month, day);
+            onDateClick(clickedDate);
+        };
+
+        return (
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">{monthName}</h3>
+                    <div className="flex gap-1">
+                        <button onClick={() => changeMonth(-1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                            <Icons.ChevronLeft className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => changeMonth(1)} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
+                            <Icons.ChevronRight className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+                <div className="grid grid-cols-7 gap-1 text-center text-xs">
+                    {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+                        <div key={i} className="font-semibold text-gray-500 dark:text-gray-400 py-1">{d}</div>
+                    ))}
+                    {days.map((day, idx) => {
+                        const hasTask = hasTodos(day);
+                        const taskColor = hasTask ? getTodoColor(day) : '';
+                        return (
+                            <button
+                                key={idx}
+                                onClick={() => handleDayClick(day)}
+                                disabled={!day}
+                                className={`
+                                    relative aspect-square flex items-center justify-center rounded text-xs font-medium
+                                    ${!day ? 'invisible' : ''}
+                                    ${isToday(day) ? 'bg-indigo-600 text-white' : ''}
+                                    ${isSelected(day) && !isToday(day) ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : ''}
+                                    ${!isSelected(day) && !isToday(day) && !hasTask ? 'hover:bg-gray-100 dark:hover:bg-gray-700' : ''}
+                                    ${hasTask && !isToday(day) && !isSelected(day) ? taskColor : ''}
+                                `}
+                            >
+                                {day}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    // --- Todo List Widget ---
+    const ReminderModal = ({ reminder, onDone, onNotDone, onClose }) => {
+        const audioContextRef = React.useRef(null);
+        const oscillatorsRef = React.useRef([]);
+        
+        React.useEffect(() => {
+            if (reminder && reminder.task) {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    audioContextRef.current = audioCtx;
+                    oscillatorsRef.current = [];
+                    
+                    // Play continuous beeps every 400ms
+                    const beepInterval = setInterval(() => {
+                        if (audioCtx.state === 'running') {
+                            const osc = audioCtx.createOscillator();
+                            const gain = audioCtx.createGain();
+                            osc.connect(gain);
+                            gain.connect(audioCtx.destination);
+                            osc.frequency.value = 800;
+                            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                            gain.gain.setValueAtTime(0, audioCtx.currentTime + 0.2);
+                            osc.start();
+                            osc.stop(audioCtx.currentTime + 0.2);
+                            oscillatorsRef.current.push(osc);
+                        }
+                    }, 400);
+                    
+                    return () => {
+                        clearInterval(beepInterval);
+                        oscillatorsRef.current.forEach(osc => {
+                            try { osc.stop(); } catch (e) {}
+                        });
+                    };
+                } catch (e) {}
+            }
+        }, [reminder]);
+
+        if (!reminder || !reminder.task) return null;
+
+        const modalContent = (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[999] p-4" onClick={onClose}>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Task Reminder 🔔</h2>
+                    <p className="text-gray-600 dark:text-gray-300 mb-1 font-semibold">{reminder.task.text}</p>
+                    {reminder.task.time && <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Scheduled for {reminder.task.time}</p>}
+                    <p className="text-sm text-gray-600 dark:text-gray-300 mb-6">Have you completed this task?</p>
+                    <div className="flex gap-3">
+                        <button onClick={() => { onDone(reminder.task); onClose(); }} className="flex-1 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg transition">
+                            ✓ Done
+                        </button>
+                        <button onClick={() => { onNotDone(reminder.task); onClose(); }} className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition">
+                            ✗ Not Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+
+        return ReactDOM.createPortal(modalContent, document.body);
+    };
+
+    const TodoListWidget = ({ todos, selectedDate, setTodos, onActivity }) => {
+        const [newTask, setNewTask] = useState('');
+        const [newTime, setNewTime] = useState('');
+        const [reminder, setReminder] = useState(null);
+        
+        const getTodayKey = () => {
+            const today = new Date();
+            return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        };
+        
+        const getDateKey = (date) => {
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        };
+
+        const dateKey = getDateKey(selectedDate);
+        const todayKey = getTodayKey();
+        const todosForDate = todos[dateKey] || [];
+
+        const getUpcomingTodos = () => {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const upcoming = [];
+            const futureDate = new Date(today);
+            futureDate.setDate(futureDate.getDate() + 7);
+
+            Object.keys(todos).forEach(key => {
+                const [year, month, day] = key.split('-').map(Number);
+                const date = new Date(year, month - 1, day);
+                if (date >= today && date <= futureDate) {
+                    todos[key].forEach(todo => {
+                        const daysUntil = Math.floor((date - today) / (1000 * 60 * 60 * 24));
+                        upcoming.push({ ...todo, date: key, daysUntil });
+                    });
+                }
+            });
+
+            return upcoming.sort((a, b) => a.daysUntil - b.daysUntil);
+        };
+
+        const upcomingTodos = getUpcomingTodos();
+
+        React.useEffect(() => {
+            const checkReminders = () => {
+                const now = new Date();
+                const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const todayKeyLocal = getTodayKey();
+                const todayTodos = todos[todayKeyLocal] || [];
+                
+                if (!reminder) {
+                    for (const todo of todayTodos) {
+                        if (todo.time && todo.time === currentTime && !todo.completed && todo.status !== 'missed') {
+                            setReminder({ task: todo, dateKey: todayKeyLocal });
+                            break;
+                        }
+                    }
+                }
+            };
+            checkReminders();
+            const intervalId = setInterval(checkReminders, 1000);
+            return () => clearInterval(intervalId);
+        }, [todos, reminder]);
+
+        const addTodo = () => {
+            if (!newTask.trim()) return;
+            onActivity();
+            const newTodo = {
+                id: Date.now(),
+                text: newTask.trim(),
+                time: newTime,
+                completed: false,
+                status: 'pending'
+            };
+            setTodos(prev => ({
+                ...prev,
+                [dateKey]: [...(prev[dateKey] || []), newTodo]
+            }));
+            setNewTask('');
+            setNewTime('');
+        };
+
+        const toggleTodo = (id) => {
+            setTodos(prev => ({
+                ...prev,
+                [dateKey]: prev[dateKey].map(t => t.id === id ? { ...t, completed: !t.completed, status: !t.completed ? 'completed' : 'pending' } : t)
+            }));
+        };
+
+        const handleReminderDone = (task) => {
+            setTodos(prev => ({
+                ...prev,
+                [reminder.dateKey]: prev[reminder.dateKey].map(t => t.id === task.id ? { ...t, completed: true, status: 'completed' } : t)
+            }));
+        };
+
+        const handleReminderNotDone = (task) => {
+            setTodos(prev => ({
+                ...prev,
+                [reminder.dateKey]: prev[reminder.dateKey].map(t => t.id === task.id ? { ...t, status: 'missed' } : t)
+            }));
+        };
+
+        const deleteTodo = (id) => {
+            setTodos(prev => ({
+                ...prev,
+                [dateKey]: prev[dateKey].filter(t => t.id !== id)
+            }));
+        };
+
+        const formatDate = (date) => {
+            return new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        };
+
+        return (
+            <>
+                {reminder && (
+                    <ReminderModal 
+                        reminder={reminder} 
+                        onDone={handleReminderDone} 
+                        onNotDone={handleReminderNotDone} 
+                        onClose={() => setReminder(null)} 
+                    />
+                )}
+                <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Icons.CheckSquare className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                            <h3 className="font-semibold text-gray-800 dark:text-gray-100 text-sm">Todo</h3>
+                        </div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">{formatDate(selectedDate)}</span>
+                    </div>
+
+                    <div className="space-y-2 mb-3">
+                        <input
+                            type="text"
+                            value={newTask}
+                            onChange={(e) => setNewTask(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && addTodo()}
+                            placeholder="Add task..."
+                            className="w-full px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        />
+                        <div className="flex gap-2">
+                            <input
+                                type="time"
+                                value={newTime}
+                                onChange={(e) => setNewTime(e.target.value)}
+                                className="flex-1 px-3 py-2 text-sm rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                            />
+                            <button
+                                onClick={addTodo}
+                                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-lg"
+                            >
+                                Add
+                            </button>
+                        </div>
+                    </div>
+
+                    {todosForDate.length > 0 ? (
+                        <div className="space-y-2 mb-4">
+                            {todosForDate.map(todo => (
+                                <div key={todo.id} className="flex items-start gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <button onClick={() => toggleTodo(todo.id)} className="mt-0.5">
+                                        {todo.completed ? (
+                                            <Icons.CheckSquare className="w-4 h-4 text-emerald-600" />
+                                        ) : (
+                                            <Icons.Square className="w-4 h-4 text-gray-400" />
+                                        )}
+                                    </button>
+                                    <div className="flex-1 min-w-0">
+                                        <div className={`text-sm ${
+                                            todo.status === 'missed' ? 'line-through text-red-500 dark:text-red-400 font-semibold' :
+                                            todo.completed ? 'line-through text-gray-400' : 'text-gray-800 dark:text-gray-200'
+                                        }`}>
+                                            {todo.text}
+                                        </div>
+                                        {todo.time && (
+                                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{todo.time}</div>
+                                        )}
+                                    </div>
+                                    <button
+                                        onClick={() => deleteTodo(todo.id)}
+                                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                                    >
+                                        <Icons.Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-600" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="text-xs text-gray-400 text-center py-4">No tasks for this date</p>
+                    )}
+
+                    {upcomingTodos.length > 0 && (
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-3 mt-3">
+                            <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">Upcoming (7 days)</h4>
+                            <div className="space-y-2 max-h-32 overflow-y-auto">
+                                {upcomingTodos.map(todo => (
+                                    <div key={`${todo.date}-${todo.id}`} className="flex items-center gap-2 text-xs">
+                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-semibold ${
+                                            todo.daysUntil === 0 ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300' :
+                                            todo.daysUntil <= 2 ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300' :
+                                            'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
+                                        }`}>
+                                            {todo.daysUntil === 0 ? 'Today' : `${todo.daysUntil}d`}
+                                        </span>
+                                        <span className="text-gray-600 dark:text-gray-400 flex-1 truncate">{todo.text}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </>
+        );
+    };
+
+    
+
+    // --- GPA Calculator Modal ---
+    const GpaCalculatorModal = ({
+        open,
+        onClose,
+        courses,
+        onChangeCourse,
+        onAddCourse,
+        onRemoveCourse,
+        prevCgpa,
+        prevCredits,
+        setPrevCgpa,
+        setPrevCredits,
+        scale = GPA_SCALES.NITR,
+    }) => {
+        if (!open) return null;
+
+        const totalCredits = courses.reduce((sum, c) => sum + (Number(c.credits) || 0), 0);
+        const totalPoints = courses.reduce((sum, c) => sum + (Number(c.credits) || 0) * (Number(c.grade) || 0), 0);
+        const sgpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '—';
+
+        const prevCr = Number(prevCredits) || 0;
+        const prevCg = Number(prevCgpa) || 0;
+        const cumulativeCredits = prevCr + totalCredits;
+        const cgpa = cumulativeCredits ? ((prevCg * prevCr + totalPoints) / cumulativeCredits).toFixed(2) : '—';
+
+        return (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                            <Icons.Calculator className="w-5 h-5 text-indigo-600" />
+                            SGPA / CGPA Calculator
+                        </h2>
+                        <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full">
+                            <Icons.X className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="space-y-4">
+                        {courses.map((course, idx) => (
+                            <div key={course.id} className="flex gap-3 items-start">
+                                <div className="flex-1 grid grid-cols-3 gap-3">
+                                    <input
+                                        type="text"
+                                        value={course.name}
+                                        onChange={(e) => onChangeCourse(course.id, { name: e.target.value })}
+                                        placeholder={`Course ${idx + 1}`}
+                                        className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={course.credits}
+                                        onChange={(e) => onChangeCourse(course.id, { credits: e.target.value })}
+                                        placeholder="Credits"
+                                        min="0"
+                                        className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    />
+                                    <select
+                                        value={course.grade}
+                                        onChange={(e) => onChangeCourse(course.id, { grade: e.target.value })}
+                                        className="px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                                    >
+                                        {scale.map(opt => (
+                                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {courses.length > 1 && (
+                                    <button
+                                        onClick={() => onRemoveCourse(course.id)}
+                                        className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg"
+                                    >
+                                        <Icons.Trash2 className="w-4 h-4 text-red-600" />
+                                    </button>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+
+                    <button
+                        onClick={onAddCourse}
+                        className="mt-4 w-full py-2 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg text-gray-500 dark:text-gray-400 hover:border-indigo-500 hover:text-indigo-600 font-medium text-sm"
+                    >
+                        + Add Course
+                    </button>
+
+                    <div className="mt-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl space-y-3">
+                        <div className="flex justify-between text-sm text-gray-700 dark:text-gray-200">
+                            <span>Total Credits</span>
+                            <span className="font-semibold">{totalCredits}</span>
+                        </div>
+                        <div className="flex justify-between text-base font-bold text-indigo-900 dark:text-indigo-100">
+                            <span>SGPA</span>
+                            <span>{sgpa}</span>
+                        </div>
+                        <div className="border-t border-indigo-200 dark:border-indigo-800 pt-3">
+                            <div className="flex gap-3 mb-3">
+                                <div className="flex-1">
+                                    <label className="text-xs text-gray-500 dark:text-gray-400">Previous Credits Earned</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        value={prevCredits}
+                                        onChange={(e) => setPrevCredits(e.target.value)}
+                                        className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none text-gray-800 dark:text-gray-100"
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <label className="text-xs text-gray-500 dark:text-gray-400">Previous CGPA</label>
+                                    <input
+                                        type="number"
+                                        min="0"
+                                        max="10"
+                                        step="0.01"
+                                        value={prevCgpa}
+                                        onChange={(e) => setPrevCgpa(e.target.value)}
+                                        className="w-full mt-1 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none text-gray-800 dark:text-gray-100"
+                                    />
+                                </div>
+                            </div>
+                            <div className="flex justify-between text-sm text-gray-700 dark:text-gray-200">
+                                <span>Cumulative Credits</span>
+                                <span className="font-semibold">{cumulativeCredits}</span>
+                            </div>
+                            <div className="flex justify-between text-base font-bold text-emerald-900 dark:text-emerald-100">
+                                <span>CGPA</span>
+                                <span>{cgpa}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // --- Login Component ---
+    const LoginPage = ({ onLoginSuccess }) => {
+        const [username, setUsername] = useState('');
+        const [branch, setBranch] = useState(() => {
+            try {
+                const saved = localStorage.getItem('exammode_user');
+                const u = saved ? JSON.parse(saved) : null;
+                return u?.branch || '';
+            } catch (e) { return ''; }
+        });
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState('');
+        const branchLocked = !!branch;
+
+        const handleGoogleLogin = async () => {
+            if (!username.trim()) {
+                setError('Please enter a username');
+                return;
+            }
+            if (!branchLocked && !branch.trim()) {
+                setError('Please select your branch');
+                return;
+            }
+            setLoading(true);
+            setError('');
+            
+            try {
+                const fb = window.firebase;
+                if (!fb) {
+                    throw new Error('Firebase SDK did not load. Check network and refresh.');
+                }
+
+                const auth = fb.auth();
+                const db = fb.firestore();
+                const provider = new fb.auth.GoogleAuthProvider();
+                
+                const result = await auth.signInWithPopup(provider);
+                const user = result.user;
+                
+                // Determine final branch (respect permanence in DB)
+                let finalBranch = null;
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists && (doc.data().branch || '').length > 0) {
+                    finalBranch = doc.data().branch;
+                } else {
+                    finalBranch = branch.trim();
+                    // Save to Firestore database with branch only when not set
+                    await db.collection('users').doc(user.uid).set({
+                        uid: user.uid,
+                        email: user.email,
+                        displayName: user.displayName,
+                        photoURL: user.photoURL,
+                        username: username.trim(),
+                        branch: finalBranch,
+                        createdAt: fb.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: fb.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                }
+
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    username: username.trim(),
+                    branch: finalBranch,
+                    loginTime: new Date().toISOString()
+                };
+                localStorage.setItem('exammode_user', JSON.stringify(userData));
+                onLoginSuccess(userData);
+            } catch (err) {
+                console.error('Login error:', err);
+                setError(err.message || 'Login failed. Please try again.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        return (
+            <div className="fixed inset-0 rainbow-bg flex items-center justify-center p-4">
+                <div className="w-full max-w-md">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 p-8">
+                        <div className="flex justify-center mb-6">
+                            <img src="Logo%20F.jpeg" alt="UniAssist" className="w-16 h-16 rounded-2xl shadow-lg object-contain" />
+                        </div>
+                        
+                        <h1 className="text-3xl font-bold text-center text-gray-900 dark:text-white mb-2">UniAssist</h1>
+                        <p className="text-center text-gray-600 dark:text-gray-400 mb-8">Your study companion</p>
+                        
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Username</label>
+                                <input
+                                    type="text"
+                                    value={username}
+                                    onChange={(e) => {
+                                        setUsername(e.target.value);
+                                        setError('');
+                                    }}
+                                    onKeyPress={(e) => e.key === 'Enter' && handleGoogleLogin()}
+                                    placeholder="Choose your username"
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/60 text-gray-900 dark:text-white placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+                                />
+                            </div>
+                            
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Branch</label>
+                                <select
+                                    value={branch}
+                                    onChange={(e) => {
+                                        setBranch(e.target.value);
+                                        setError('');
+                                    }}
+                                    className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900/60 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none transition"
+                                    disabled={branchLocked}
+                                >
+                                    <option value="">Select your branch</option>
+                                    <option value="Biotechnology">Biotechnology</option>
+                                    <option value="Biomedical">Biomedical</option>
+                                </select>
+                                <p className="text-xs mt-1 text-rose-700 dark:text-rose-300">Your branch will be permanent once you select it here in the login page.</p>
+                            </div>
+                            
+                            {error && (
+                                <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-lg text-sm">
+                                    {error}
+                                </div>
+                            )}
+                            
+                            <button
+                                onClick={handleGoogleLogin}
+                                disabled={loading}
+                                className="w-full py-3 bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition flex items-center justify-center gap-2 shadow-lg"
+                            >
+                                {loading ? (
+                                    <>
+                                        <div className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full"></div>
+                                        Signing in...
+                                    </>
+                                ) : (
+                                    <>
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                            <path fill="currentColor" d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032 c0-3.331,2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.461,2.268,15.365,1,12.545,1 C6.777,1,2,5.777,2,11.545c0,5.769,4.777,10.545,10.545,10.545c6.032,0,10.545-4.513,10.545-10.545 C23.091,11.52,23.027,10.882,12.545,10.239z"/>
+                                        </svg>
+                                        Sign in with Google
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                        
+                        <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-6">
+                            No password needed. Just pick a username and sign in with Google.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // --- Main App ---
+    function App() {
+        // Login State
+        const [user, setUser] = useState(() => {
+            const saved = localStorage.getItem('exammode_user');
+            return saved ? JSON.parse(saved) : null;
+        });
+
+        // Sync user data from Firestore on mount
+        useEffect(() => {
+            const syncUserFromDatabase = async () => {
+                const localUser = localStorage.getItem('exammode_user');
+                if (!localUser) return;
+                
+                try {
+                    const userData = JSON.parse(localUser);
+                    if (!userData.uid) return;
+
+                    const fb = window.firebase;
+                    if (!fb) return;
+
+                    const db = fb.firestore();
+                    const userDoc = await db.collection('users').doc(userData.uid).get();
+                    
+                    if (userDoc.exists) {
+                        const dbData = userDoc.data();
+                        const syncedUser = {
+                            ...userData,
+                            username: dbData.username || userData.username,
+                            branch: dbData.branch || userData.branch,
+                        };
+                        
+                        // Update localStorage with database data
+                        localStorage.setItem('exammode_user', JSON.stringify(syncedUser));
+                        setUser(syncedUser);
+                    }
+                } catch (e) {
+                    console.error('Failed to sync user from database:', e);
+                }
+            };
+
+            syncUserFromDatabase();
+        }, []);
+
+        // GPA Calculator State
+        const [showGpaCalc, setShowGpaCalc] = useState(false);
+        const [gpaCourses, setGpaCourses] = useState([
+            { id: 'c1', name: '', credits: '', grade: 10 },
+            { id: 'c2', name: '', credits: '', grade: 9 },
+            { id: 'c3', name: '', credits: '', grade: 8 },
+        ]);
+        const [prevCgpa, setPrevCgpa] = useState('');
+        const [prevCredits, setPrevCredits] = useState('');
+
+        
+
+        // Todo State
+        const [todos, setTodos] = useState({});
+        const [sidebarDate, setSidebarDate] = useState(new Date());
+
+        const addGpaCourse = () => {
+            setGpaCourses(prev => [...prev, { id: `c${Date.now()}`, name: '', credits: '', grade: 10 }]);
+        };
+
+        const updateGpaCourse = (id, updates) => {
+            setGpaCourses(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+        };
+
+        const removeGpaCourse = (id) => {
+            setGpaCourses(prev => prev.filter(c => c.id !== id));
+        };
+
+        const handleActivity = () => {
+            // Activity tracking function - can be extended for logging user activity
+            // Currently a placeholder for todo activity tracking
+        };
+
+        const todosKey = user ? `exammode_todos_${user.uid}` : 'exammode_todos';
+
+        useEffect(() => {
+            // Load todos when user is known
+            const savedTodos = localStorage.getItem(todosKey);
+            if (savedTodos) {
+                setTodos(JSON.parse(savedTodos));
+            } else {
+                setTodos({});
+            }
+        }, [user]);
+
+        useEffect(() => {
+            if (!user) return;
+            localStorage.setItem(todosKey, JSON.stringify(todos));
+        }, [todos, user, todosKey]);
+
+        if (!user) {
+            return <LoginPage onLoginSuccess={setUser} />;
+        }
+
+        const handleLogout = () => {
+            localStorage.removeItem('exammode_user');
+            setTodos({});
+            setUser(null);
+        };
+
+        const usernameLabel = user?.username || user?.displayName || 'You';
+        const branchLabel = user?.branch || 'Branch not set';
+        const emailLabel = user?.email || '';
+
+        return (
+            <div className="min-h-screen rainbow-bg">
+                <header className="app-header">
+                    <div className="app-header-inner w-full max-w-7xl mx-auto">
+                        <div className="flex items-center gap-2">
+                            <img src="Logo%20F.jpeg" alt="UniAssist" className="w-8 h-8 rounded-lg object-contain" />
+                            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">UniAssist</h1>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-white">{usernameLabel}</p>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">{branchLabel}</p>
+                                {emailLabel && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">{emailLabel}</p>
+                                )}
+                            </div>
+                            <img src={user.photoURL} alt={usernameLabel} className="w-9 h-9 rounded-full border-2 border-indigo-600 shadow-sm" />
+                            <button
+                                onClick={() => window.darkModeToggle()}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                                title="Toggle dark/light mode"
+                            >
+                                <svg className="w-5 h-5 text-gray-600 dark:text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                                </svg>
+                            </button>
+                            <button
+                                onClick={() => window.location.href = 'profile'}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                                title="Profile"
+                            >
+                                <Icons.User className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                            </button>
+                            <button
+                                onClick={handleLogout}
+                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition"
+                                title="Logout"
+                            >
+                                <Icons.LogOut className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                            </button>
+                        </div>
+                    </div>
+                </header>
+                <div className="max-w-7xl mx-auto px-4 py-8 flex gap-6">
+                    <main className="flex-1 min-w-0">
+                        <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 mb-6 font-medium">
+                            <span className="text-gray-900 dark:text-white">Home</span>
+                        </nav>
+
+                        <div className="animate-in space-y-10">
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
+                                    <Icons.Activity className="w-5 h-5 text-gray-500 dark:text-gray-400" /> Study
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <button onClick={() => window.location.href = 'dash'} className="relative w-full text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition card-hover">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/50 dark:text-blue-200">
+                                                <Icons.BarChart3 className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Study Dashboard</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">Track your learning progress and statistics.</p>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    <button 
+                                        onClick={() => window.location.href = 'subjects'}
+                                        className="relative w-full text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition card-hover">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-900/50 dark:text-purple-200">
+                                                <Icons.BookOpen className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Subjects</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">Browse and explore all study materials.</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
+                                    <Icons.Activity className="w-5 h-5 text-gray-500 dark:text-gray-400" /> Campus
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <button
+                                        onClick={() => window.location.href = '/clubs'}
+                                        className="relative w-full text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition card-hover"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-xl bg-purple-50 text-purple-600 dark:bg-purple-900/40 dark:text-purple-200">
+                                                <Icons.Users className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Clubs</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">Explore and join campus clubs and organizations.</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <button
+                                        onClick={() => window.location.href = 'Complaint and suggestion/'}
+                                        className="relative w-full text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition card-hover"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/40 dark:text-blue-200">
+                                                <Icons.MessageCircle className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Complain & Suggest</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">Share feedback and suggestions to improve campus.</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <button
+                                        onClick={() => window.location.href = 'recycling/recycle'}
+                                        className="relative w-full text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition card-hover"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-200">
+                                                <Icons.Activity className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Marketplace & Recycling</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">Buy and sell items.Track campus recycling drives and submit collections.</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6 flex items-center gap-2">
+                                    <Icons.Calculator className="w-5 h-5 text-gray-500 dark:text-gray-400" /> Tools
+                                </h2>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <button onClick={() => setShowGpaCalc(true)} className="relative w-full text-left bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-5 shadow-sm hover:shadow-md transition card-hover">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600 dark:bg-indigo-900/50 dark:text-indigo-200">
+                                                <Icons.Calculator className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">SGPA / CGPA Calculator</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">NIT Rourkela grading (Ex to F). Compute semester SGPA and cumulative CGPA.</p>
+                                            </div>
+                                        </div>
+                                    </button>
+
+                                    {/* Pomodoro card removed as requested */}
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                    <aside className="hidden lg:block w-64 flex-shrink-0 sticky top-24 self-start">
+                        <div className="space-y-3">
+                            <CalendarWidget
+                                todos={todos}
+                                selectedDate={sidebarDate}
+                                onDateClick={setSidebarDate}
+                            />
+                            <TodoListWidget
+                                todos={todos}
+                                selectedDate={sidebarDate}
+                                setTodos={setTodos}
+                                onActivity={handleActivity}
+                            />
+                        </div>
+                    </aside>
+                </div>
+                
+                <GpaCalculatorModal
+                    open={showGpaCalc}
+                    onClose={() => setShowGpaCalc(false)}
+                    courses={gpaCourses}
+                    onChangeCourse={updateGpaCourse}
+                    onAddCourse={addGpaCourse}
+                    onRemoveCourse={removeGpaCourse}
+                    prevCgpa={prevCgpa}
+                    prevCredits={prevCredits}
+                    setPrevCgpa={setPrevCgpa}
+                    setPrevCredits={setPrevCredits}
+                />
+            </div>
+        );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+</script>
+</body>
+</html>

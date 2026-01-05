@@ -1,0 +1,67 @@
+{
+  "hosting": {
+    "public": ".",
+    "cleanUrls": true,
+    "trailingSlash": false,
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/heartbeats", "destination": "/CLUB WEB PAGE/music/heartbeats.html" },
+      { "source": "/dnb", "destination": "/CLUB WEB PAGE/music/dnb.html" },
+      { "source": "/euphony", "destination": "/CLUB WEB PAGE/music/euphony.html" },
+      { "source": "/webwiz", "destination": "/CLUB WEB PAGE/music/webwiz.html" },
+      { "source": "/aps", "destination": "/CLUB WEB PAGE/music/aps.html" },
+      { "source": "/gta", "destination": "/CLUB WEB PAGE/music/gta.html" },
+      { "source": "/cyborg", "destination": "/CLUB WEB PAGE/music/cyborg.html" },
+      { "source": "/udaan", "destination": "/CLUB WEB PAGE/music/udaan.html" },
+      { "source": "/ml4e", "destination": "/CLUB WEB PAGE/music/ml4e.html" },
+      { "source": "/mavericks", "destination": "/CLUB WEB PAGE/music/mavericks.html" },
+      { "source": "/synergy", "destination": "/CLUB WEB PAGE/music/synergy.html" },
+      { "source": "/ritvic", "destination": "/CLUB WEB PAGE/music/ritvic.html" },
+      { "source": "/pantomime", "destination": "/CLUB WEB PAGE/music/pantomime.html" },
+      { "source": "/rainbowdot", "destination": "/CLUB WEB PAGE/music/rainbowdot.html" },
+      { "source": "/bless&bliss", "destination": "/CLUB WEB PAGE/music/bless&bliss.html" },
+      { "source": "/akriti", "destination": "/CLUB WEB PAGE/music/akriti.html" },
+      { "source": "/chitraang", "destination": "/CLUB WEB PAGE/music/chitraang.html" },
+      { "source": "/fusion", "destination": "/CLUB WEB PAGE/music/fusion.html" },
+      { "source": "/cinematics", "destination": "/CLUB WEB PAGE/music/cinematics.html" },
+      { "source": "/thirdeye", "destination": "/CLUB WEB PAGE/music/thirdeye.html" },
+      { "source": "/oss", "destination": "/CLUB WEB PAGE/music/oss.html" },
+      { "source": "/clarion", "destination": "/CLUB WEB PAGE/music/clarion.html" },
+      { "source": "/hourglass", "destination": "/CLUB WEB PAGE/music/hourglass.html" },
+      { "source": "/clubs", "destination": "/CLUB WEB PAGE/index.html" }
+    ],
+    "headers": [
+      {
+        "source": "**/*.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "**/*.js",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      },
+      {
+        "source": "**/*.css",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "projects": {
+    "default": "examsnitrkl"
+  },
+  "targets": {
+    "uniassist-101": {
+      "hosting": {
+        "lastminpal": [
+          "lastminpal"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

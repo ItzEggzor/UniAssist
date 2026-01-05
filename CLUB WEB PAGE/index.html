@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Clubs Hub</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/CLUB WEB PAGE/style.css">
+</head>
+<body>
+    <nav class="site-nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-container">
+            <button type="button" class="nav-btn back-btn" onclick="window.location.href='../'" title="Back to Home">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"/>
+                    <polyline points="12 19 5 12 12 5"/>
+                </svg>
+            </button>
+            
+            <button type="button" class="brand" onclick="navigateTo('./')">CLUBS</button>
+
+            <div class="nav-actions">
+                <button type="button" class="theme-toggle-btn" id="theme-toggle" title="Toggle light/dark mode">
+                    <svg class="icon icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                    </svg>
+                    <svg class="icon icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                    </svg>
+                </button>
+
+                <button type="button" class="nav-btn profile-btn" onclick="window.location.href='../profile'" title="Profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <header>
+        <h2>Find Your Passion</h2>
+        <p>Explore our diverse range of student-led organizations under SAC, NIT Rourkela.</p>
+        <div class="suggestion-box">
+            <input type="text" id="interest-input" placeholder="Enter interests (e.g., coding, singing, acting)...">
+            <button onclick="suggestClubs()">Suggest Clubs</button>
+            <div id="suggestion-output"></div>
+        </div>
+    </header>
+
+    <main class="club-grid">
+        <section class="category cat-music">
+            <div class="shine"></div>
+            <h3>Music</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/heartbeats')">HEARTBEATS</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/dnb')">DNB</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/euphony')">EUPHONY</button></li>
+            </ul>
+        </section>
+
+        <section class="category cat-coding">
+            <div class="shine"></div>
+            <h3>Coding & Development</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/webwiz')">Webwiz</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/aps')">APS</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/gta')">GTA</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/cyborg')">CYBORG</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/udaan')">UDAAN</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/ml4e')">ML4E</button></li>
+            </ul>
+        </section>
+
+        <section class="category cat-dance">
+            <div class="shine"></div>
+            <h3>Dance</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/mavericks')">MAVERICKS</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/synergy')">SYNERGY</button></li>
+            </ul>
+        </section>
+
+        <section class="category cat-drama">
+            <div class="shine"></div>
+            <h3>Drama</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/ritvic')">RITVIC</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/pantomime')">PANTOMIME</button></li>
+            </ul>
+        </section>
+
+        <section class="category cat-social">
+            <div class="shine"></div>
+            <h3>Social Service</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/rainbowdot')">RAINBOWDOT</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/bless&bliss')">BLESS & BLISS</button></li>
+            </ul>
+        </section>
+
+        <section class="category cat-art">
+            <div class="shine"></div>
+            <h3>Art & Fashion</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/akriti')">AKRITI</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/chitraang')">CHITRAANG</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/fusion')">FUSION</button></li>
+            </ul>
+        </section>
+
+        <section class="category cat-film">
+            <div class="shine"></div>
+            <h3>Film & Photography</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/cinematics')">CINEMATICS</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/thirdeye')">THIRDEYE</button></li>
+            </ul>
+        </section>
+
+        <section class="category cat-lit">
+            <div class="shine"></div>
+            <h3>Literature & Debate</h3>
+            <ul>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/oss')">OSS</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/clarion')">CLARION</button></li>
+                <li><button type="button" class="nav-button" onclick="navigateTo('/hourglass')">HOURGLASS</button></li>
+            </ul>
+        </section>
+
+        </main>
+
+    <script src="/CLUB WEB PAGE/script.js"></script>
+</body>
+</html>
