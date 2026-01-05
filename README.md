@@ -1,4 +1,4 @@
-# UniAssist 🎓🤖
+# UniAssist 
 
 UniAssist is an AI-powered student assistance platform designed to simplify exam preparation
 and centralize essential campus utilities into one intuitive system.
